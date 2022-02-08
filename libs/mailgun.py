@@ -1,43 +1,52 @@
+from requests import Response, post
 import os
 from typing import List
-from requests import Response, post
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-class MailGunException(Exception):
+class MailgunException(Exception):
     def __init__(self, message: str):
-        super().__init__(message)
+        self.message = message
 
 
 class Mailgun:
-    MAILGUN_API_KEY = os.environ.get('MAILGUN_API_KEY', None)
+    MAILGUN_KEY = os.environ.get('MAILGUN_KEY', None)
     MAILGUN_DOMAIN = os.environ.get('MAILGUN_DOMAIN', None)
 
-    FROM_TITLE = 'Pricing Service'
+    FROM_TITLE = 'Pricing service'
     FROM_EMAIL = f'do-not-reply@{MAILGUN_DOMAIN}'
+    MAILGUN_URL = f"https://api.mailgun.net/v3/{MAILGUN_DOMAIN}/messages"
 
     @classmethod
-    def send_email(
-        cls, email: List[str], subject: str, text: str, html: str
-    ) -> Response:
-        if cls.MAILGUN_API_KEY is None:
-            raise MailGunException(gettext('mailgun_failed_load_api_key'))
-
+    def send_email(cls, email: List[str], subject: str, text: str, html: str) -> Response:
+        if cls.MAILGUN_KEY is None:
+            raise MailgunException("Failed to load Mailgun API KEY")
         if cls.MAILGUN_DOMAIN is None:
-            raise MailGunException(gettext('mailgun_failed_load_domain'))
+            raise MailgunException("Failed to load Mailgun DOMAIN_NAME")
 
         response = post(
-            f'https://api.mailgun.net/v3/{cls.MAILGUN_DOMAIN}/messages',
-            auth=('api', cls.MAILGUN_API_KEY),
-            data={
-                'from': f'{cls.FROM_TITLE} <{cls.FROM_EMAIL}>',
-                'to': email,
-                'subject': subject,
-                'text': text,
-                'html': html,
-            },
-        )
+            cls.MAILGUN_URL,
+            auth=("api", cls.MAILGUN_KEY),
+            data={"from": f"{cls.FROM_TITLE} {cls.FROM_EMAIL}",
+                  "to": [email],
+                  "subject": subject,
+                  "text": text,
+                  "html": html,
+                  })
         if response.status_code != 200:
-            # print(response.status_code)
-            # print(response.json())
-            raise MailGunException('An error occurred while sending e-mail.')
+            print(response)
+            raise MailgunException("An error occurred while sending emails")
+
         return response
+
+
+if __name__ == '__main__':
+    print(os.environ['MAILGUN_KEY'])
+    print(os.environ['MAILGUN_DOMAIN'])
+    Mailgun.send_email(['lolo.edinburgh@gmail.com'],
+                       "Hello",
+                       "This is a test",
+                       '<h4>This is a test</h4>'
+                       )
