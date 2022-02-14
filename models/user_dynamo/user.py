@@ -6,43 +6,26 @@ import boto3
 from boto3.dynamodb.conditions import Key
 
 from models.model import Model
-from common.database import Database
+from common.dynamo import Dynamodb, UserNotFoundError, IncorrectPasswordError
 from common.utils import Utils
-import models.user.errors as UserErrors
 
 
 @dataclass
 class User(Model):
-    collection: str = field(init=False, default="users")
+    table: str = field(init=False, default="Users")
     email: str
     password: str
     _id: str = field(default_factory=lambda: uuid.uuid4().hex)
 
     @classmethod
-    def find_by_email_dynamo(cls,email: str) -> "User":
+    def find_by_email_dynamo(cls, email: str) -> "User":
         try:
-            session = boto3.Session(profile_name='acg')
+            user_table = Dynamodb(cls.table)
+            users = user_table.find_by_hash_key(email)
+            return cls(**users[0])
+        except UserNotFoundError:
+            raise UserNotFoundError('A user with this e-mail was not found.')
 
-            dynamodb = session.resource('dynamodb')
-
-            table = dynamodb.Table('Users')
-            response = table.query(
-                    KeyConditionExpression=Key('email').eq(email)
-                )
-            items =  response['Items'][0]
-            if len(items) == 0:
-                raise TypeError
-            return cls(**items[0])
-        except TypeError:
-            raise UserErrors.UserNotFoundError('A user with this e-mail was not found.')
-
-
-    @classmethod
-    def find_by_email(cls, email: str) -> "User":
-        try:
-            return cls.find_one_by('email', email)
-        except TypeError:
-            raise UserErrors.UserNotFoundError('A user with this e-mail was not found.')
 
     @classmethod
     def is_login_valid(cls, email: str, password: str) -> bool:
@@ -53,11 +36,11 @@ class User(Model):
         :param password: The password
         :return: True if valid, an exception otherwise
         """
-        user = cls.find_by_email(email)
+        user = cls.find_by_email_dynamo(email)
 
         if not Utils.check_hashed_password(password, user.password):
             # Tell the user that their password is wrong
-            raise UserErrors.IncorrectPasswordError("Your password was wrong.")
+            raise IncorrectPasswordError("Your password was wrong.")
 
         return True
 
@@ -70,12 +53,12 @@ class User(Model):
         :return: True if registered successfully, or False otherwise (exceptions can also be raised)
         """
         if not Utils.email_is_valid(email):
-            raise UserErrors.InvalidEmailError("The e-mail does not have the right format.")
-        
+            raise InvalidEmailError("The e-mail does not have the right format.")
+
         try:
-            user = cls.find_by_email(email)
+            user = cls.find_by_email_dynamo(email)
             raise UserErrors.UserAlreadyRegisteredError("The e-mail you used to register already exists.")
-        except UserErrors.UserNotFoundError:
+        except UserNotFoundError:
             User(email, Utils.hash_password(password)).save_to_mongo()
 
         return True
