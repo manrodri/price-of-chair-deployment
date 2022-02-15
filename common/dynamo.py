@@ -2,14 +2,16 @@ import os
 from typing import Dict, List
 import boto3
 from boto3.dynamodb.conditions import Key
-from models.user_dynamo.errors import UserNotFoundError
 
 
 class Dynamodb:
 
-    def __init__(self, table):
+    def __init__(self, table, endpoint_url=None):
         self.session = boto3.Session(profile_name='acg')
-        self.client = self.session.resource('dynamodb')
+        if endpoint_url:
+            self.client = self.session.resource('dynamodb', endpoint_url=endpoint_url)
+        else:
+            self.client = self.session.resource('dynamodb')
         self.table = self.client.Table(table)
 
     def insert(self, item: Dict) -> Dict:
