@@ -1,31 +1,33 @@
 import uuid
 from dataclasses import dataclass, field
-from typing import Dict, List
+from typing import Dict
 
-import boto3
-from boto3.dynamodb.conditions import Key
-
-from models.model import Model
-from common.dynamo import Dynamodb, UserNotFoundError, IncorrectPasswordError
+from common.dynamo import Dynamodb
 from common.utils import Utils
+from models.user_dynamo.errors import UserNotFoundError, IncorrectPasswordError, InvalidEmailError, \
+    UserAlreadyRegisteredError
 
 
 @dataclass
-class User(Model):
+class User:
     table: str = field(init=False, default="Users")
     email: str
     password: str
     _id: str = field(default_factory=lambda: uuid.uuid4().hex)
 
     @classmethod
+    def save_to_dynamo(cls, item):
+        user_table = Dynamodb(cls.table)
+        user_table.insert(item)
+
+    @classmethod
     def find_by_email_dynamo(cls, email: str) -> "User":
         try:
             user_table = Dynamodb(cls.table)
-            users = user_table.find_by_hash_key(email)
+            users = user_table.find_by_hash_key("email",email)
             return cls(**users[0])
-        except UserNotFoundError:
+        except IndexError:
             raise UserNotFoundError('A user with this e-mail was not found.')
-
 
     @classmethod
     def is_login_valid(cls, email: str, password: str) -> bool:
@@ -56,10 +58,11 @@ class User(Model):
             raise InvalidEmailError("The e-mail does not have the right format.")
 
         try:
-            user = cls.find_by_email_dynamo(email)
-            raise UserErrors.UserAlreadyRegisteredError("The e-mail you used to register already exists.")
+            cls.find_by_email_dynamo(email)
+            raise UserAlreadyRegisteredError("The e-mail you used to register already exists.")
         except UserNotFoundError:
-            User(email, Utils.hash_password(password)).save_to_mongo()
+            user = User(email, Utils.hash_password(password))
+            User.save_to_dynamo(user.json())
 
         return True
 

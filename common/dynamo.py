@@ -2,23 +2,7 @@ import os
 from typing import Dict, List
 import boto3
 from boto3.dynamodb.conditions import Key
-
-
-class UserError(Exception):
-    def __init__(self, message):
-        self.message = message
-
-
-class UserNotFoundError(UserError):
-    pass
-
-
-class IncorrectPasswordError(UserError):
-    pass
-
-
-class InvalidEmailError(UserError):
-    pass
+from models.user_dynamo.errors import UserNotFoundError
 
 
 class Dynamodb:
@@ -36,14 +20,14 @@ class Dynamodb:
         return item
 
     def find_by_hash_key(self, hash_key_name, hash_key_value) -> List:
-        try:
             response = self.table.query(
                 KeyConditionExpression=Key(hash_key_name).eq(hash_key_value)
             )
-        except IndexError:
-            raise UserNotFoundError
 
-        return response['Items']
+            if len(response["Items"]) == 0:
+                raise IndexError
+
+            return response['Items']
 
     def find_by_sort_key(self, sort_key_name, sort_key_value) -> List:
         response = self.table.query(
@@ -66,3 +50,4 @@ class Dynamodb:
             Key=key
 
         )
+
