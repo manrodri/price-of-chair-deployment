@@ -21,7 +21,7 @@ class User:
         user_table.insert(item)
 
     @classmethod
-    def find_by_email_dynamo(cls, email: str) -> "User":
+    def find_by_email(cls, email: str) -> "User":
         try:
             user_table = Dynamodb(cls.table)
             users = user_table.find_by_hash_key("email",email)
@@ -38,7 +38,7 @@ class User:
         :param password: The password
         :return: True if valid, an exception otherwise
         """
-        user = cls.find_by_email_dynamo(email)
+        user = cls.find_by_email(email)
 
         if not Utils.check_hashed_password(password, user.password):
             # Tell the user that their password is wrong
@@ -58,7 +58,7 @@ class User:
             raise InvalidEmailError("The e-mail does not have the right format.")
 
         try:
-            cls.find_by_email_dynamo(email)
+            cls.find_by_email(email)
             raise UserAlreadyRegisteredError("The e-mail you used to register already exists.")
         except UserNotFoundError:
             user = User(email, Utils.hash_password(password))
