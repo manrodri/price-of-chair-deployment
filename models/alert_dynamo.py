@@ -73,7 +73,7 @@ class Alert:
             "item_id": item_from_dynamo["item_id"],
             "name": item_from_dynamo["name"],
             "price_limit": float(item_from_dynamo['price_limit']),
-            "user_email": json.loads(item_from_dynamo['user_email'])
+            "user_email": item_from_dynamo['user_email']
         }
 
     @classmethod
