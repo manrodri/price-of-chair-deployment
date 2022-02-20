@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 import uuid
 import re
-from typing import Dict, List
+from typing import Dict
 import json
 
 from common.dynamo import Dynamodb
@@ -38,7 +38,7 @@ class Store(Model):
     @classmethod
     def get_by_name(cls, store_name: str) -> "Store":
         try:
-            store_table = Dynamodb(cls.table, "jenkins")
+            store_table = Dynamodb(cls.table)
             stores = store_table.find_by_index('name-index', ("name", store_name))
             if len(stores) == 0:
                 raise IndexError
@@ -50,7 +50,7 @@ class Store(Model):
 
     @classmethod
     def get_by_url_prefix(cls, url_prefix: str) -> "Store":
-        store_table = Dynamodb(cls.table, "jenkins")
+        store_table = Dynamodb(cls.table)
         try:
             stores = store_table.find_by_hash_key("url_prefix", url_prefix)
             if len(stores) == 0:
@@ -83,6 +83,6 @@ class Store(Model):
 
     @classmethod
     def save_to_dynamo(cls, item: Dict) -> None:
-        user_table = Dynamodb(cls.table, "jenkins")
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
 

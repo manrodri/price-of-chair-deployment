@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
-from decimal import Decimal
-from typing import Dict, List
+from typing import Dict
 from bs4 import BeautifulSoup
 import requests
 import re
@@ -44,13 +43,13 @@ class Item:
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table, "jenkins")
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
 
     @classmethod
     def find_by_id(cls, id: str) -> "Item":
         try:
-            item_table = Dynamodb(cls.table, "jenkins")
+            item_table = Dynamodb(cls.table)
             items = item_table.find_by_hash_key("_id", id)
             if len(items) == 0:
                 raise IndexError

@@ -1,9 +1,8 @@
-import json
 from flask import Blueprint, render_template, request, redirect, url_for, session
 from models.alert_dynamo import Alert
 from models.store_dynamo import Store
 from models.item_dynamo import Item
-from models.user_dynamo import requires_login
+from models.user_dynamo.decorators import requires_login
 
 alert_blueprint = Blueprint("alerts", __name__)
 

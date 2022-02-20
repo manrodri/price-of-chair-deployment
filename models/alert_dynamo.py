@@ -1,14 +1,11 @@
-import json
 from dataclasses import dataclass, field
 from typing import List, Dict
 import uuid
 
-from botocore.exceptions import ClientError
-
 from libs.mailgun import Mailgun
 from models.item_dynamo import Item
 from models.model import Model
-from models.user_dynamo import User
+from models.user_dynamo.user import User
 from common.dynamo import Dynamodb
 
 
@@ -62,7 +59,7 @@ class Alert(Model):
     @classmethod
     def find_by_email(cls, email) -> List["Alert"]:
         try:
-            alert_table = Dynamodb(cls.table, "jenkins")
+            alert_table = Dynamodb(cls.table)
             alerts = alert_table.find_by_hash_key("user_email", email)
             return [cls(**cls.create_item(alert)) for alert in alerts]
         except IndexError:
@@ -70,7 +67,7 @@ class Alert(Model):
 
     @classmethod
     def find_by_id(cls, id: str, email: str) -> "Alert":
-        alert_table = Dynamodb(cls.table, "jenkins")
+        alert_table = Dynamodb(cls.table)
         item = alert_table.get_item({"user_email": email, "_id": id})
         return cls(**item)
 
@@ -86,5 +83,5 @@ class Alert(Model):
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table, "jenkins")
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)

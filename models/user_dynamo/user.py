@@ -17,13 +17,13 @@ class User:
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table, profile='jenkins')
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
 
     @classmethod
     def find_by_email(cls, email: str) -> "User":
         try:
-            user_table = Dynamodb(cls.table, profile='jenkins')
+            user_table = Dynamodb(cls.table)
             users = user_table.find_by_hash_key("email",email)
             return cls(**users[0])
         except IndexError:

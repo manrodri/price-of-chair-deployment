@@ -1,6 +1,7 @@
 from flask import Blueprint, request, session, url_for, render_template, redirect
 # from models.user import User, UserErrors
-from models.user_dynamo import User, UserErrors
+from models.user_dynamo.user import User
+from models.user_dynamo import UserErrors
 
 user_blueprint = Blueprint('users', __name__)
 
