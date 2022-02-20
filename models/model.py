@@ -30,4 +30,5 @@ class Model(metaclass=ABCMeta):
 
     @classmethod
     def all(cls) -> List:
-        return Dynamodb(cls.table, "jenkins").all()
+        items = Dynamodb(cls.table, "jenkins").all()
+        return [cls(**item) for item in items]

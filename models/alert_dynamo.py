@@ -2,8 +2,12 @@ import json
 from dataclasses import dataclass, field
 from typing import List, Dict
 import uuid
-# from libs.mailgun import Mailgun
+
+from botocore.exceptions import ClientError
+
+from libs.mailgun import Mailgun
 from models.item_dynamo import Item
+from models.model import Model
 from models.user_dynamo import User
 from common.dynamo import Dynamodb
 
@@ -18,7 +22,7 @@ class AlertNotFound(AlertsError):
 
 
 @dataclass(eq=False)
-class Alert:
+class Alert(Model):
     table: str = field(init=False, default="Alerts")
     name: str
     item_id: str
@@ -43,26 +47,32 @@ class Alert:
         self.item.load_price()
         return self.item.price
 
-    # def notify_if_price_reached(self) -> None:
-    #     if self.item.price < self.price_limit:
-    #         print(
-    #             f"Item {self.item} has reached a price under {self.price_limit}. Latest price: {self.item.price}."
-    #         )
-    #         Mailgun.send_email(
-    #             email=[self.user_email],
-    #             subject=f"Notification for {self.name}",
-    #             text=f"Your alert {self.name} has reached a price under {self.price_limit}. The latest price is {self.item.price}. Go to this address to check your item: {self.item.url}.",
-    #             html=f'<p>Your alert {self.name} has reached a price under {self.price_limit}.</p><p>The latest price is {self.item.price}. Check your item out <a href="{self.item.url}>here</a>.</p>',
-    #         )
+    def notify_if_price_reached(self) -> None:
+        if self.item.price < float(self.price_limit):
+            print(
+                f"Item {self.item} has reached a price under {self.price_limit}. Latest price: {self.item.price}."
+            )
+            Mailgun.send_email(
+                email=[self.user_email],
+                subject=f"Notification for {self.name}",
+                text=f"Your alert {self.name} has reached a price under {self.price_limit}. The latest price is {self.item.price}. Go to this address to check your item: {self.item.url}.",
+                html=f'<p>Your alert {self.name} has reached a price under {self.price_limit}.</p><p>The latest price is {self.item.price}. Check your item out <a href="{self.item.url}>here</a>.</p>',
+            )
 
     @classmethod
-    def find_by_email(cls, email):
+    def find_by_email(cls, email) -> List["Alert"]:
         try:
             alert_table = Dynamodb(cls.table, "jenkins")
             alerts = alert_table.find_by_hash_key("user_email", email)
-            return [cls(**cls.create_item(alerts)) for alert in alerts]
+            return [cls(**cls.create_item(alert)) for alert in alerts]
         except IndexError:
             return []
+
+    @classmethod
+    def find_by_id(cls, id: str, email: str) -> "Alert":
+        alert_table = Dynamodb(cls.table, "jenkins")
+        item = alert_table.get_item({"user_email": email, "_id": id})
+        return cls(**item)
 
     @classmethod
     def create_item(cls, item_from_dynamo):

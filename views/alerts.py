@@ -24,12 +24,13 @@ def create_alert():
         store = Store.find_by_url(item_url)
         item = Item(item_url, store.tag_name, store.query)
         item.load_price()
-        item.save_to_mongo()
+        item.save_to_dynamo(item.json())
 
         alert_name = request.form["name"]
         price_limit = float(request.form["price_limit"])
 
-        Alert(alert_name, item._id, price_limit, session["email"]).save_to_mongo()
+        alert = Alert(alert_name, item._id, price_limit, session["email"])
+        Alert.save_to_dynamo(alert.json())
 
     # What happens if it's a GET request
     return render_template("alerts/new_alert.html")
@@ -41,20 +42,24 @@ def edit_alert(alert_id):
     if request.method == "POST":
         price_limit = float(request.form["price_limit"])
 
-        alert = Alert.get_by_id(alert_id)
+        alert = Alert.find_by_id(alert_id, session['email'])
         alert.price_limit = price_limit
-        alert.save_to_mongo()
+        Alert.save_to_dynamo(alert.json())
 
         return redirect(url_for(".index"))
 
     # What happens if it's a GET request
-    return render_template("alerts/edit_alert.html", alert=Alert.get_by_id(alert_id))
+    return render_template("alerts/edit_alert.html", alert=Alert.find_by_id(alert_id, session['email']))
 
 
 @alert_blueprint.route("/delete/<string:alert_id>")
 @requires_login
 def delete_alert(alert_id):
-    alert = Alert.get_by_id(alert_id)
+    alert = Alert.find_by_id(alert_id, session['email'])
     if alert.user_email == session["email"]:
-        alert.remove_from_mongo()
-    return redirect(url_for(".index"))
+        Alert.remove_from_dynamo({
+            'user_email': session['email'],
+            '_id': alert_id
+        }
+        )
+        return redirect(url_for(".index"))

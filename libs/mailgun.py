@@ -35,18 +35,19 @@ class Mailgun:
                   "text": text,
                   "html": html,
                   })
+
         if response.status_code != 200:
-            print(response)
+            print(response, response.status_code)
             raise MailgunException("An error occurred while sending emails")
 
         return response
 
-
-if __name__ == '__main__':
-    print(os.environ['MAILGUN_KEY'])
-    print(os.environ['MAILGUN_DOMAIN'])
-    Mailgun.send_email(['lolo.edinburgh@gmail.com'],
-                       "Hello",
-                       "This is a test",
-                       '<h4>This is a test</h4>'
-                       )
+#
+# if __name__ == '__main__':
+#     print(os.environ['MAILGUN_KEY'])
+#     print(os.environ['MAILGUN_DOMAIN'])
+#     Mailgun.send_email(['lolo.edinburgh@gmail.com'],
+#                        "Hello",
+#                        "This is a test",
+#                        '<h4>This is a test</h4>'
+#                        )

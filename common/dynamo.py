@@ -73,7 +73,7 @@ class Dynamodb:
 
         return response['Items']
 
-    def all(self):
+    def all(self) -> List:
         try:
             response = self.table.scan()
         except ClientError as e:
@@ -98,3 +98,11 @@ class Dynamodb:
         self.table.delete_item(
             Key=key
         )
+
+    def get_item(self, key_dict: Dict):
+        try:
+            response = self.table.get_item(Key=key_dict)
+        except ClientError as e:
+            print(e.response['Error']['Message'])
+        else:
+            return response['Item']
