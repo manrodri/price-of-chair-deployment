@@ -60,11 +60,9 @@ class Alert:
         try:
             alert_table = Dynamodb(cls.table, "jenkins")
             alerts = alert_table.find_by_hash_key("user_email", email)
-            if len(alerts) == 0:
-                raise IndexError
-            return cls(**cls.create_item(alerts[0]))
+            return [cls(**cls.create_item(alerts)) for alert in alerts]
         except IndexError:
-            raise AlertNotFound('A item with this _id was not found.')
+            return []
 
     @classmethod
     def create_item(cls, item_from_dynamo):

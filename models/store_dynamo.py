@@ -5,6 +5,7 @@ from typing import Dict, List
 import json
 
 from common.dynamo import Dynamodb
+from models.model import Model
 
 
 class StoresErrors(BaseException):
@@ -17,7 +18,7 @@ class StoreNotFound(StoresErrors):
 
 
 @dataclass(eq=False)
-class Store:
+class Store(Model):
     table: str = field(init=False, default="Stores")
     name: str
     url_prefix: str
@@ -71,7 +72,7 @@ class Store:
         return cls.get_by_url_prefix(url_prefix)
 
     @classmethod
-    def create_item(cls, item_from_dynamo):
+    def create_item(cls, item_from_dynamo: Dict) -> Dict:
         return {
             "_id": item_from_dynamo['_id'],
             "name": item_from_dynamo["name"],
@@ -85,7 +86,3 @@ class Store:
         user_table = Dynamodb(cls.table, "jenkins")
         user_table.insert(item)
 
-    @classmethod
-    def all(cls) -> List:
-        store_table = Dynamodb(cls.table, "jenkins")
-        return store_table.all()

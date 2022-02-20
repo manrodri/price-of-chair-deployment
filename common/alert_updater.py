@@ -1,4 +1,4 @@
-from models.alert import Alert
+from models.alert_dynamo import Alert
 from dotenv import load_dotenv
 
 load_dotenv()

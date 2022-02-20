@@ -17,7 +17,7 @@ class User:
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table)
+        user_table = Dynamodb(cls.table, profile='jenkins')
         user_table.insert(item)
 
     @classmethod

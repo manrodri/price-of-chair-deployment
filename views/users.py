@@ -2,7 +2,6 @@ from flask import Blueprint, request, session, url_for, render_template, redirec
 # from models.user import User, UserErrors
 from models.user_dynamo import User, UserErrors
 
-
 user_blueprint = Blueprint('users', __name__)
 
 
@@ -36,3 +35,10 @@ def register_user():
             return e.message
 
     return render_template("users/register.html")  # Send the user an error if their login was invalid
+
+
+@user_blueprint.route('/logout')
+def logout_user():
+    if session.get('email'):
+        session['email'] = None
+    return redirect(url_for('users.login_user'))

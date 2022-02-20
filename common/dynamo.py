@@ -22,6 +22,15 @@ class Dynamodb:
 
         return item
 
+    def delete(self, key_dict: Dict) -> None:
+        try:
+            self.table.delete_item(Key=key_dict)
+        except ClientError as e:
+            if e.response['Error']['Code'] == "ConditionalCheckFailedException":
+                print(e.response['Error']['Message'])
+            else:
+                raise ClientError
+
     def find_by_hash_key(self, hash_key_name, hash_key_value) -> List:
         try:
             response = self.table.query(

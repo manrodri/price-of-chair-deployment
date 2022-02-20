@@ -1,7 +1,7 @@
 import json
 from flask import Blueprint, render_template, request, redirect, url_for
-from models.store import Store
-from models.user import requires_admin
+from models.store_dynamo import Store
+from models.user_dynamo import requires_admin
 
 store_blueprint = Blueprint('stores', __name__)
 
