@@ -20,7 +20,7 @@ class AlertNotFound(AlertsError):
 
 @dataclass(eq=False)
 class Alert(Model):
-    table_name: str = field(init=False, default="Alerts")
+    table: str = field(init=False, default="Alerts")
     name: str
     item_id: str
     price_limit: float
