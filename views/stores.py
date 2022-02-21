@@ -21,7 +21,8 @@ def create_store():
         tag_name = request.form['tag_name']
         query = json.loads(request.form['query'])
 
-        Store(name, url_prefix, tag_name, query).save_to_mongo()
+        store =Store(name, url_prefix, tag_name, query)
+        Store.save_to_dynamo(store.json())
 
     # What happens if it's a GET request
     return render_template("stores/new_store.html")
@@ -37,24 +38,28 @@ def edit_store(store_id):
         tag_name = request.form['tag_name']
         query = json.loads(request.form['query'])
 
-        store = Store.get_by_id(store_id)
+        store = Store.find_by_url(store_id)
 
         store.name = name
         store.url_prefix = url_prefix
         store.tag_name = tag_name
         store.query = query
 
-        store.save_to_mongo()
+        Store.save_to_dynamo(store.json())
 
         return redirect(url_for('.index'))
 
     # What happens if it's a GET request
-    return render_template("stores/edit_store.html", store=Store.get_by_id(store_id))
+    return render_template("stores/edit_store.html", store=Store.find_by_url(store_id))
 
 
 @store_blueprint.route('/delete/<string:store_id>')
 @requires_admin
 def delete_store(store_id):
-    Store.get_by_id(store_id).remove_from_mongo()
+    # todo error handling
+    store = Store.find_by_url(store_id)
+    Store.remove_from_dynamo({
+        "url_prefix": store.url_prefix
+    })
     return redirect(url_for('.index'))
 

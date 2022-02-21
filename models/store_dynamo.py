@@ -4,6 +4,9 @@ import re
 from typing import Dict
 import json
 
+from boto3.dynamodb.conditions import Key
+from botocore.exceptions import ClientError
+
 from common.dynamo import Dynamodb
 from models.model import Model
 
@@ -70,6 +73,19 @@ class Store(Model):
         match = pattern.search(url)
         url_prefix = match.group(1)
         return cls.get_by_url_prefix(url_prefix)
+
+    @classmethod
+    def find_by_id(cls, id: str):
+        try:
+            index_name = 'name-index'
+            store_table = Dynamodb(cls.table, 'us-east-1')
+            items = store_table.find_by_index(index_name,("_id", id))
+            if len(items) == 0:
+                raise ClientError
+        except ClientError as e:
+            print(e.response['Error']['Message'])
+            raise ClientError
+        return cls(**items[0])
 
     @classmethod
     def create_item(cls, item_from_dynamo: Dict) -> Dict:
