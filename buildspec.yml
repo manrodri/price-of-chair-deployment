@@ -1,5 +1,11 @@
 version: 0.2
 
+env:
+  variables:
+    DOCKER_PASSWORD: "01124404Pp_"
+    DOCKER_USERNAME: "manrodri"
+    IMAGE_REPO_NAME: "price-of-chair-deployment"
+
 phases:
   pre_build:
     commands:
@@ -11,9 +17,9 @@ phases:
       - echo Build started on `date`
       - echo Building the Docker image...
       - cd ./src
-      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
+      - docker build -t ${IMAGE_REPO_NAME}:${IMAGE_TAG} .
   post_build:
     commands:
       - echo Build completed on `date`
       - echo Pushing the Docker image...
-      - docker push $IMAGE_REPO_NAME:$IMAGE_TAG
+      - docker push ${IMAGE_REPO_NAME}:${IMAGE_TAG}
