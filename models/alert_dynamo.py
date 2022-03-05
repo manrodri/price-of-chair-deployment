@@ -2,7 +2,6 @@ from dataclasses import dataclass, field
 from typing import List, Dict
 import uuid
 
-from libs.mailgun import Mailgun
 from models.item_dynamo import Item
 from models.model import Model
 from models.user_dynamo.user import User
@@ -43,18 +42,6 @@ class Alert(Model):
     def load_item_price(self) -> float:
         self.item.load_price()
         return self.item.price
-
-    def notify_if_price_reached(self) -> None:
-        if self.item.price < float(self.price_limit):
-            print(
-                f"Item {self.item} has reached a price under {self.price_limit}. Latest price: {self.item.price}."
-            )
-            Mailgun.send_email(
-                email=[self.user_email],
-                subject=f"Notification for {self.name}",
-                text=f"Your alert {self.name} has reached a price under {self.price_limit}. The latest price is {self.item.price}. Go to this address to check your item: {self.item.url}.",
-                html=f'<p>Your alert {self.name} has reached a price under {self.price_limit}.</p><p>The latest price is {self.item.price}. Check your item out <a href="{self.item.url}>here</a>.</p>',
-            )
 
     @classmethod
     def find_by_email(cls, email) -> List["Alert"]:
