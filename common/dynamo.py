@@ -7,7 +7,7 @@ from botocore.exceptions import ClientError
 
 class Dynamodb:
 
-    def __init__(self, table, region, endpoint_url=None):
+    def __init__(self, table, region='eu-west-1', endpoint_url=None):
         self.session = boto3.Session(region_name=region)
         if endpoint_url:
             self.client = self.session.resource('dynamodb', endpoint_url=endpoint_url)

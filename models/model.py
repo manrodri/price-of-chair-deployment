@@ -14,11 +14,11 @@ class Model(metaclass=ABCMeta):
 
     @classmethod
     def save_to_dynamo(cls, item: Dict) -> "T":
-        return cls(**Dynamodb(cls.table, 'us-east-1').insert(item))
+        return cls(**Dynamodb(cls.table).insert(item))
 
     @classmethod
     def remove_from_dynamo(cls, key_dict: Dict) -> None:
-        Dynamodb(cls.table, 'us-east-1').delete(key_dict)
+        Dynamodb(cls.table).delete(key_dict)
 
     @abstractmethod
     def json(self) -> Dict:
@@ -30,5 +30,5 @@ class Model(metaclass=ABCMeta):
 
     @classmethod
     def all(cls) -> List:
-        items = Dynamodb(cls.table, 'us-east-1').all()
+        items = Dynamodb(cls.table).all()
         return [cls(**item) for item in items]

@@ -41,7 +41,7 @@ class Store(Model):
     @classmethod
     def get_by_name(cls, store_name: str) -> "Store":
         try:
-            store_table = Dynamodb(cls.table, 'us-east-1')
+            store_table = Dynamodb(cls.table)
             stores = store_table.find_by_index('name-index', ("name", store_name))
             if len(stores) == 0:
                 raise IndexError
@@ -53,7 +53,7 @@ class Store(Model):
 
     @classmethod
     def get_by_url_prefix(cls, url_prefix: str) -> "Store":
-        store_table = Dynamodb(cls.table, 'us-east-1')
+        store_table = Dynamodb(cls.table)
         try:
             stores = store_table.find_by_hash_key("url_prefix", url_prefix)
             if len(stores) == 0:
@@ -78,7 +78,7 @@ class Store(Model):
     def find_by_id(cls, id: str):
         try:
             index_name = 'name-index'
-            store_table = Dynamodb(cls.table, 'us-east-1')
+            store_table = Dynamodb(cls.table)
             items = store_table.find_by_index(index_name,("_id", id))
             if len(items) == 0:
                 raise ClientError
@@ -99,6 +99,6 @@ class Store(Model):
 
     @classmethod
     def save_to_dynamo(cls, item: Dict) -> None:
-        user_table = Dynamodb(cls.table, 'us-east-1')
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
 

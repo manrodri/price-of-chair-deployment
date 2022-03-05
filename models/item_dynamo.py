@@ -43,13 +43,13 @@ class Item:
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table, 'us-east-1')
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
 
     @classmethod
     def find_by_id(cls, id: str) -> "Item":
         try:
-            item_table = Dynamodb(cls.table, 'us-east-1')
+            item_table = Dynamodb(cls.table)
             items = item_table.find_by_hash_key("_id", id)
             if len(items) == 0:
                 raise IndexError

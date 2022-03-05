@@ -59,7 +59,7 @@ class Alert(Model):
     @classmethod
     def find_by_email(cls, email) -> List["Alert"]:
         try:
-            alert_table = Dynamodb(cls.table, 'us-east-1')
+            alert_table = Dynamodb(cls.table)
             alerts = alert_table.find_by_hash_key("user_email", email)
             return [cls(**cls.create_item(alert)) for alert in alerts]
         except IndexError:
@@ -67,7 +67,7 @@ class Alert(Model):
 
     @classmethod
     def find_by_id(cls, id: str, email: str) -> "Alert":
-        alert_table =  Dynamodb(cls.table, 'us-east-1')
+        alert_table =  Dynamodb(cls.table)
         item = alert_table.get_item({"user_email": email, "_id": id})
         return cls(**item)
 
@@ -83,5 +83,5 @@ class Alert(Model):
 
     @classmethod
     def save_to_dynamo(cls, item):
-        user_table = Dynamodb(cls.table, 'us-east-1')
+        user_table = Dynamodb(cls.table)
         user_table.insert(item)
